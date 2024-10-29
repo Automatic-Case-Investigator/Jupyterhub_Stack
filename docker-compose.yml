@@ -1,0 +1,41 @@
+# Copyright (c) Jupyter Development Team.
+# Distributed under the terms of the Modified BSD License.
+
+# JupyterHub docker compose configuration file
+
+services:
+    hub:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            args:
+                JUPYTERHUB_VERSION: latest
+        restart: always
+        image: jupyterhub
+        container_name: jupyterhub
+        networks:
+            - jupyterhub-network
+        volumes:
+            - ./jupyterhub_config.py:/srv/jupyterhub/jupyterhub_config.py:ro
+            - /var/run/docker.sock:/var/run/docker.sock:rw
+            # - ./keys:/srv/jupyterhub/keys
+            - jupyterhub-data:/data
+        ports:
+            - "8002:8002"
+            - "8000:8000"
+        environment:
+            DOCKER_NETWORK_NAME: jupyterhub-network
+            DOCKER_NOTEBOOK_IMAGE: jupyterlab-tf-gpu:latest
+            DOCKER_NOTEBOOK_DIR: /home/jovyan/work
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          capabilities: [gpu]
+volumes:
+    jupyterhub-data:
+
+networks:
+    jupyterhub-network:
+        name: jupyterhub-network
